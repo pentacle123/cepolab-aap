@@ -278,39 +278,30 @@ export default function App() {
   async function saveSnap() { try { await window.storage.set("aap-v3", JSON.stringify({ d: new Date().toISOString(), cats: Object.keys(catData), data: catData, yt: ytVideos, ca: customAssets })); showT("📸 저장 완료"); } catch (e) { showT("⚠️ " + e.message); } }
   async function loadSnap() { try { var r = await window.storage.get("aap-v3"); if (!r) { showT("⚠️ 저장된 데이터 없음"); return; } var s = JSON.parse(r.value); setCatData(s.data || {}); var ns = {}, np = {}; (s.cats || []).forEach(function(id) { ns[id] = true; np[id] = "done"; }); setSel(ns); setPhases(np); if (s.yt) setYtVideos(s.yt); if (s.ca) setCustomAssets(s.ca); setSnapDate(s.d ? new Date(s.d).toLocaleDateString("ko-KR") : null); setStatus("done"); setMainTab("scan"); showT("📂 불러오기 완료"); } catch (e) { showT("⚠️ " + e.message); } }
 
-  /* ═══ Scan — 4 MCP tools, NO web search trends ═══ */
+  /* ═══ Scan — Preloaded data + Live AI ideas ═══ */
   var scanOne = useCallback(async function(cat) {
     try {
-      /* STEP 1: CEP Discovery — Cluster Finder */
+      /* STEP 1: CEP — from preloaded data */
       setPhases(function(p) { var n = Object.assign({}, p); n[cat.id] = "cep"; return n; });
-      var cepData = await callMCP(
-        'cluster_finder를 사용하라. gl="kr", keyword="' + cat.clusterKw + '", data_type="communities", hop=2. 결과에서 세포랩 브랜드와 연결 가능한 CEP(소비자가 이 키워드를 검색할 때의 맥락/상황/동기)를 한국어로 3줄 이내 요약.',
-        '"' + cat.clusterKw + '" 키워드 클러스터에서 세포랩과 연결 가능한 소비자 맥락(CEP)을 찾아라.'
-      );
-      await wt(800);
+      var pre = null;
+      try { var mod = await import("./data/preloaded.json"); pre = mod.default.categories[cat.id]; } catch(e) {}
+      var cepInsight = pre ? pre.cepInsight : "사전 데이터 없음";
+      await wt(600);
 
-      /* STEP 2: Path Analysis — Path Finder */
+      /* STEP 2: Path — from preloaded data */
       setPhases(function(p) { var n = Object.assign({}, p); n[cat.id] = "path"; return n; });
-      var pathData = await callMCP(
-        'path_finder를 사용하라. gl="kr", keyword="' + cat.pathKw + '", limit=100. 결과에서 "세포랩" 또는 "세리포리아" 또는 "당화" 또는 "AGEs"와 관련된 경로가 있는지 확인. 있으면 "VERIFIED: [경로 설명]", 없으면 "BLUOCEAN: [이유]"로 응답.',
-        '"' + cat.pathKw + '"에서 세포랩까지의 검색 경로를 분석하라.'
-      );
-      var pathStatus = pathData.indexOf("VERIFIED") >= 0 ? "verified" : "bluocean";
-      var pathInsight = pathData.replace(/^(VERIFIED|BLUOCEAN)[:\s]*/i, "").substring(0, 200);
-      await wt(800);
+      var pathStatus = pre ? pre.pathStatus : "bluocean";
+      var pathInsight = pre ? pre.pathInsight : "경로 데이터 없음";
+      await wt(600);
 
-      /* STEP 3: Demand Validation — Keyword Info */
+      /* STEP 3: Demand — from preloaded data */
       setPhases(function(p) { var n = Object.assign({}, p); n[cat.id] = "demand"; return n; });
-      var kl = cat.demandKw.map(function(k) { return '"' + k + '"'; }).join(", ");
-      var demandData = await callMCP(
-        'keyword_info를 사용하라. gl="kr", keywords=[' + kl + '], data_type="all". 결과를 한국어로 요약: 1) 월 검색량 2) 타겟 일치도(세포랩 타겟=40~50대 여성) 3) 영상 SERP 노출 여부 4) 트렌드(증감). 3줄 이내.',
-        '키워드 수요 검증.'
-      );
-      await wt(800);
+      var demandInsight = pre ? pre.demandInsight : "수요 데이터 없음";
+      await wt(600);
 
-      /* STEP 4: Content Ideas — Claude AI (data-driven, NO trends) */
+      /* STEP 4: Content Ideas — Live Claude AI */
       setPhases(function(p) { var n = Object.assign({}, p); n[cat.id] = "idea"; return n; });
-      var ideaInput = '[데이터 증명]\n\n[CEP — Cluster Finder]\n' + cepData.substring(0, 400) + '\n\n[검색 경로 — Path Finder]\n상태: ' + (pathStatus === "verified" ? "확인됨" : "블루오션") + '\n' + pathInsight + '\n\n[수요 — Keyword Info]\n' + demandData.substring(0, 400) + '\n\n[브랜드 자산 연결]\n' + cat.brandHook;
+      var ideaInput = '[데이터 증명]\n\n[CEP — Cluster Finder]\n' + cepInsight + '\n\n[검색 경로 — Path Finder]\n상태: ' + (pathStatus === "verified" ? "확인됨" : "블루오션") + '\n' + pathInsight + '\n\n[수요 — Keyword Info]\n' + demandInsight + '\n\n[브랜드 자산 연결]\n' + cat.brandHook;
       var brandConnect = await callAI(
         '세포랩 크로스 카테고리 전략가. 데이터가 이 카테고리에 기회가 있음을 증명했다. 이제 세포랩의 브랜드 자산과 이 관심사를 연결하는 의외의 접점을 찾아라. 뷰티 카테고리에서는 절대 나올 수 없는, 이 관심사이기 때문에 가능한 연결이어야 한다.\n\n' + BRAND_DNA_PROMPT,
         ideaInput + '\n\n위 데이터가 증명한 이 관심사 카테고리에서, 세포랩 브랜드 자산과의 의외의 연결점 3개를 찾아라. 뷰티 업계 사람이라면 절대 생각하지 못할 연결이어야 한다. 각각 2줄. 구체적 제품명 포함.', 2000
@@ -320,7 +311,7 @@ export default function App() {
         ideaInput + '\n\n[브랜드 연결]\n' + brandConnect.substring(0, 500) + '\n\n---\n\n위 데이터가 증명한 기회 카테고리에서, 소비자가 "이게 화장품 광고였어?"라고 놀랄 만한 숏폼 콘텐츠 아이디어 3개를 만들어라.\n\n각 아이디어는 반드시 7개 필드를 포함:\n- **제목**: 실제 SNS에 올릴 구체적 제목 (릴스/숏폼 명시). 이 관심사 카테고리의 소비자가 클릭할 제목이어야 함.\n- **썸네일 후킹**: 첫 화면 후킹 15자 이내. "이게 뭐지?" 느낌의 궁금증/충격/공감.\n- **배경무드**: 6자리 HEX 컬러코드 1개. 콘텐츠 분위기에 맞는 배경색.\n- **핵심 메시지**: 한 줄\n- **연결 상품**: 세포랩 구체적 제품명 (바이오제닉 에센스 90% 등)\n- **왜 지금**: 이 콘텐츠를 지금 해야 하는 이유\n- **타겟**: 이 콘텐츠에 반응할 구체적 페르소나\n\n3개 모두 서로 다른 각도에서 접근하라. 하나는 과학적 의외성, 하나는 감성적 공감, 하나는 유머/반전.', 6000
       );
       var ic = (ideaResult.match(/\*\*제목\*\*/g) || []).length || 0;
-      setCatData(function(pv) { var n = Object.assign({}, pv); n[cat.id] = { cepInsight: cepData.substring(0, 300), pathStatus: pathStatus, pathInsight: pathInsight, demandInsight: demandData.substring(0, 300), brandConnect: brandConnect, ideas: ideaResult, ideaCount: ic }; return n; });
+      setCatData(function(pv) { var n = Object.assign({}, pv); n[cat.id] = { cepInsight: cepInsight, pathStatus: pathStatus, pathInsight: pathInsight, demandInsight: demandInsight, brandConnect: brandConnect, ideas: ideaResult, ideaCount: ic }; return n; });
       setPhases(function(p) { var n = Object.assign({}, p); n[cat.id] = "done"; return n; });
     } catch (err) {
       setCatData(function(pv) { var n = Object.assign({}, pv); n[cat.id] = { cepInsight: "⚠️ " + (err.message || "오류"), pathStatus: "bluocean", pathInsight: "오류", demandInsight: "오류", brandConnect: "", ideas: "", ideaCount: 0 }; return n; });

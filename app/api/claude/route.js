@@ -5,7 +5,7 @@ export async function POST(request) {
     const headers = {
       "Content-Type": "application/json",
       "x-api-key": process.env.ANTHROPIC_API_KEY,
-      "anthropic-version": "2023-06-01",
+      "anthropic-version": "2024-01-01",
     };
 
     // MCP 서버가 있으면 beta 헤더 추가
