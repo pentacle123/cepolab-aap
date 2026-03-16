@@ -25,19 +25,19 @@ var BRAND_COMMERCIAL = [
   { icon: "💬", title: "피부도 세포니까, 세포랩", desc: "슬로건" },
   { icon: "⭐", title: "김민하 모델", desc: "2025~" },
 ];
-var BRAND_SHORT = "세포랩(CEPOLAB): 퓨젠바이오(모회사)가 당뇨 신약 연구 중 세리포리아 락세라타를 우연히 발견. AGEs(최종당화산물) 억제 원천기술. CLEPS® 92.8% 고함량. 자체 R&D에 10년간 150억 투입(외부 투자 아님, 자체 연구개발비). '화장품 보다 먼저 세포랩' 프리케어 포지셔닝. 제품: 바이오제닉 에센스 90%, 하이드레이션, 블렌디드 50%, 솝, 마스크. 타겟: 4050 여성.\n\n⚠️ 중요: 사실과 다른 내용을 만들지 마라. '투자받은', '상장한', 'FDA 승인' 등 확인되지 않은 표현 금지. 브랜드 정보에 없는 사실을 추가하지 마라.";
+var BRAND_SHORT = "세포랩(CEPOLAB) 브랜드 자산 6가지:\n① 발견 스토리: 퓨젠바이오(모회사)가 당뇨 신약 연구 중 세리포리아 락세라타를 우연히 발견\n② AGEs 억제: 최종당화산물 억제 원천기술 — 피부 당화를 막는 과학\n③ CLEPS® 92.8%: 자체 R&D 10년간 150억 투입(외부 투자 아님). 단일 유효성분 92.8% 고함량\n④ 5성분 미니멀: 핵심 5가지 성분만. 친환경 바이오 배양\n⑤ 프리케어 포지셔닝: '화장품 보다 먼저 세포랩' — 세안 후 첫 단계\n⑥ 피부 기초체력: 피부에도 기초체력이 있다는 새로운 관점\n제품: 바이오제닉 에센스 90%, 하이드레이션, 블렌디드 50%, 솝, 마스크\n타겟: 4050 여성\n\n⚠️ 중요: 사실과 다른 내용을 만들지 마라. '투자받은', '상장한', 'FDA 승인' 등 확인되지 않은 표현 금지. 브랜드 정보에 없는 사실을 추가하지 마라.";
 
 var CATS = [
-  { id: "science", label: "과학/바이오", icon: "🔬", color: "#5B6ABF" },
   { id: "slowaging", label: "저속노화", icon: "🧬", color: "#2D8B5F" },
-  { id: "derma", label: "피부과/의학", icon: "🏥", color: "#3B82C4" },
-  { id: "food", label: "요리/푸드사이언스", icon: "🍳", color: "#D97706" },
-  { id: "sugar", label: "혈당/당독소", icon: "🩸", color: "#C4503A" },
+  { id: "food", label: "푸드/식문화", icon: "🍳", color: "#D97706" },
   { id: "fitness", label: "운동/피트니스", icon: "🏃", color: "#7C5BBF" },
   { id: "wellness", label: "수면/웰니스", icon: "🌙", color: "#9B6DBF" },
-  { id: "ferment", label: "커피/와인/발효", icon: "☕", color: "#4B8B3B" },
   { id: "docu", label: "다큐/과학교양", icon: "🎬", color: "#BF5B8A" },
-  { id: "discovery", label: "발견/디스커버리", icon: "💡", color: "#C4963A" },
+  { id: "health", label: "건강/다이어트", icon: "🥗", color: "#C4503A" },
+  { id: "travel", label: "여행/호캉스", icon: "✈️", color: "#3B82C4" },
+  { id: "family", label: "육아/가족", icon: "👨‍👩‍👧", color: "#E8854A" },
+  { id: "minimal", label: "미니멀라이프", icon: "🏠", color: "#4B8B3B" },
+  { id: "business", label: "비즈니스/창업", icon: "💼", color: "#5B6ABF" },
 ];
 
 var C = { bg: "#FDFBF7", card: "#FFFFFF", alt: "#FAF7F0", gold: "#C4963A", goldDeep: "#8B6914", goldLight: "#F5ECD7", text: "#2C2417", sub: "#8C7E6A", muted: "#B8AD9C", border: "#E8E2D6", accent: "#6366f1", green: "#2D8B5F", red: "#C4503A" };
@@ -72,7 +72,7 @@ function parseIdeas(text) {
   return chunks.map(function(chunk) {
     var get = function(key) { var m = chunk.match(new RegExp("\\*\\*" + key + "\\*\\*[:\\s]*(.+)", "i")); return m ? m[1].trim() : ""; };
     var cm = chunk.match(/(?:배경무드|배경)[^#]*#?([A-Fa-f0-9]{6})/);
-    return { title: get("제목"), hook: get("썸네일 후킹") || get("후킹"), bgColor: cm ? cm[1] : "8B6914", message: get("핵심 메시지") || get("메시지"), product: get("연결 상품") || get("상품"), why: get("왜 지금"), target: get("타겟"), demand: get("수요 근거") || get("수요") };
+    return { title: get("제목"), hook: get("썸네일 후킹") || get("후킹"), twist: get("반전 연결") || get("반전"), bgColor: cm ? cm[1] : "8B6914", message: get("핵심 메시지") || get("메시지"), product: get("연결 상품") || get("상품"), asset: get("활용 자산") || get("자산"), why: get("왜 지금"), target: get("타겟"), demand: get("수요 근거") || get("수요") };
   }).filter(function(x) { return x.title; });
 }
 
@@ -98,9 +98,9 @@ function IdeaCard({ idea, idx }) {
     <div style={{ flex: 1, minWidth: 0 }}>
       <div style={{ fontSize: 12, fontWeight: 700, color: C.text, lineHeight: 1.35, marginBottom: 4 }}>{idea.title}</div>
       {idea.hook && <div style={{ fontSize: 10, marginBottom: 4 }}><span style={{ padding: "1px 4px", borderRadius: 3, background: C.gold, color: "#fff", fontSize: 7, fontWeight: 700, marginRight: 4 }}>HOOK</span><span style={{ color: C.sub }}>{idea.hook}</span></div>}
+      {idea.twist && <div style={{ fontSize: 10, color: C.sub, marginBottom: 2, padding: "2px 5px", borderRadius: 3, background: C.accent + "08", borderLeft: "2px solid " + C.accent }}><strong style={{ color: C.accent }}>반전</strong> {idea.twist}</div>}
       {idea.message && <div style={{ fontSize: 10, color: C.sub, marginBottom: 2 }}><strong style={{ color: C.goldDeep }}>메시지</strong> {idea.message}</div>}
-      {idea.product && <div style={{ fontSize: 10, marginBottom: 2 }}><strong style={{ color: C.goldDeep }}>연결</strong> <span style={{ padding: "1px 4px", borderRadius: 3, background: C.goldLight, color: C.goldDeep, fontWeight: 600, fontSize: 9 }}>{idea.product}</span></div>}
-      {idea.why && <div style={{ fontSize: 10, color: C.sub }}><strong style={{ color: C.goldDeep }}>왜 지금</strong> {idea.why}</div>}
+      {idea.product && <div style={{ fontSize: 10, marginBottom: 2 }}><strong style={{ color: C.goldDeep }}>연결</strong> <span style={{ padding: "1px 4px", borderRadius: 3, background: C.goldLight, color: C.goldDeep, fontWeight: 600, fontSize: 9 }}>{idea.product}</span>{idea.asset && <span style={{ marginLeft: 4, padding: "1px 4px", borderRadius: 3, background: C.accent + "10", color: C.accent, fontWeight: 600, fontSize: 8 }}>{idea.asset}</span>}</div>}
       {idea.target && <div style={{ fontSize: 10, color: C.sub }}><strong style={{ color: C.goldDeep }}>타겟</strong> {idea.target}</div>}
       {idea.demand && <div style={{ fontSize: 10, marginTop: 3, padding: "3px 6px", borderRadius: 4, background: C.accent + "08", border: "1px solid " + C.accent + "15" }}><strong style={{ color: C.accent }}>📊 수요</strong> <span style={{ color: C.sub }}>{idea.demand}</span></div>}
     </div>
@@ -210,8 +210,10 @@ function Bottle() {
 }
 
 /* ═══ IDEA PROMPT TEMPLATE ═══ */
-var SYS_BASE = '숏폼 크리에이티브 디렉터. 소비자가 "이게 화장품 광고?" 놀랄 콘텐츠를 만든다. 뷰티 밖 관심사에서 세포랩을 자연스럽게 발견하게 하는 콘텐츠.\n\n' + BRAND_SHORT + '\n\n⚠️ 절대 규칙 — 사실이 아닌 내용 금지:\n1. 제목/후킹에 사실 주장을 넣지 마라. "~한 이유", "~가 밝혀졌다" 같은 표현은 반드시 실제 사실이어야 한다.\n2. 모르는 사실을 만들지 마라. 모델의 경력, 기업의 재무, 연구 결과 등을 추측하지 마라.\n3. 후킹은 "질문형"이나 "호기심 유발형"을 사용하라. 예: "이 성분 뭔데?", "당뇨약 연구하다 생긴 일", "스테이크 굽는 그 반응, 피부에서도?"\n4. 확인된 사실만 사용: 당뇨 신약 연구 중 발견, AGEs 억제, CLEPS 92.8%, 5성분 미니멀, 자체 R&D 10년 150억.\n5. 클러스터 키워드는 "소비자가 이렇게 검색한다"는 데이터일 뿐, 사실이 아니다. "퓨젠바이오 주식"이 검색됐다고 "투자받았다"가 아니다.';
-var IDEA_FORMAT = '\n\n각 아이디어는 이 형식:\n\n**제목**: [릴스/숏폼] 구체적 SNS 제목. 사실이 아닌 주장 금지.\n**썸네일 후킹**: 15자 이내. 질문형/호기심형 권장 (사실 주장 금지)\n**배경무드**: HEX 6자리\n**핵심 메시지**: 한 줄\n**연결 상품**: 세포랩 제품명\n**왜 지금**: 한 줄\n**타겟**: 구체적 페르소나\n**수요 근거**: 관련 검색량/트렌드 한 줄';
+function SYS_BASE(catLabel) {
+  return '너는 "' + catLabel + '" 분야의 숏폼 콘텐츠 크리에이터다. 이 분야 소비자가 진짜로 보고 싶어하는 콘텐츠를 만든다.\n\n핵심 규칙:\n1. 제목과 후킹은 반드시 "' + catLabel + '" 카테고리의 관심사여야 한다. 세포랩, 화장품, 에센스, 스킨케어 같은 단어가 제목/후킹에 나오면 안 된다.\n2. 콘텐츠의 시작은 100% 이 카테고리의 이야기다. 소비자가 "이건 내 관심사 콘텐츠"라고 느껴야 한다.\n3. 콘텐츠 중반에 "그런데 이게 사실은 피부와도 관련이 있다" 같은 반전/연결이 나온다.\n4. 그 연결 지점에서 세포랩의 브랜드 자산이 자연스럽게 등장한다.\n5. 소비자 반응: "이게 화장품 광고였어?" (마지막에 놀라는 구조)\n\n세포랩 브랜드 자산 (콘텐츠 중반 이후에만 사용):\n① 발견 스토리: 당뇨 신약 연구 중 세리포리아 락세라타 우연 발견\n② AGEs 억제: 최종당화산물 억제 원천기술\n③ CLEPS® 92.8%: 10년 150억 자체 R&D. 단일 유효성분 92.8% 고함량\n④ 5성분 미니멀: 핵심 5가지 성분만\n⑤ 프리케어: 화장품 보다 먼저 세포랩 — 세안 후 첫 단계\n⑥ 피부 기초체력: 피부에도 기초체력이 있다는 새로운 관점\n제품: 바이오제닉 에센스 90%, 하이드레이션, 블렌디드 50%, 솝, 마스크\n타겟: 4050 여성\n\n⚠️ 절대 규칙 — 사실이 아닌 내용 금지:\n1. 모르는 사실을 만들지 마라. 모델의 경력, 기업의 재무, 연구 결과 등을 추측하지 마라.\n2. 확인된 사실만 사용: 위 ①~⑥ 브랜드 자산에 있는 내용만.\n3. 클러스터 키워드는 "소비자가 이렇게 검색한다"는 데이터일 뿐, 사실이 아니다.\n4. 2개 아이디어는 반드시 서로 다른 브랜드 자산(①~⑥)을 활용해라. 같은 자산을 두 번 쓰지 마라.';
+}
+var IDEA_FORMAT = '\n\n각 아이디어는 이 형식:\n\n**제목**: [릴스/숏폼] 이 카테고리 소비자가 클릭할 제목. 세포랩/화장품/에센스 단어 금지.\n**썸네일 후킹**: 이 카테고리의 관심사로만 후킹. 15자 이내. 세포랩/화장품 단어 금지.\n**반전 연결**: 카테고리 이야기에서 피부/세포랩으로 자연스럽게 넘어가는 한 줄.\n**배경무드**: HEX 6자리\n**핵심 메시지**: 한 줄\n**연결 상품**: 세포랩 제품명\n**활용 자산**: ①~⑥ 중 사용한 자산 번호와 이름\n**타겟**: 구체적 페르소나\n**수요 근거**: 관련 검색량/트렌드 한 줄';
 
 /* ═══ Main ═══ */
 export default function App() {
@@ -246,20 +248,20 @@ export default function App() {
       if (perspType === "cluster") {
         var clusterInput = '[카테고리] ' + cat.label + '\n[클러스터 데이터]\n' + (pre.clusters || []).join('\n') + '\n[수요] ' + (pre.di || '') + '\n[CEP] ' + (pre.cep || '');
         result = await callAI(
-          SYS_BASE + '\n\n"클러스터 발견" 관점. Cluster Finder가 발견한 소비자 검색 맥락(CEP)에서 아이디어를 만들어라.',
-          clusterInput + avoidPrompt + '\n\n위 클러스터에서 발견된 서로 다른 소비자 맥락에서 정확히 2개 숏폼 아이디어.' + IDEA_FORMAT, 6000
+          SYS_BASE(cat.label) + '\n\n"클러스터 발견" 관점.\n이 클러스터의 소비자 맥락에서, 소비자가 진짜로 관심 있는 주제로 콘텐츠를 만들어라.\n세포랩은 콘텐츠 안에서 자연스럽게 발견되는 것이지, 제목에 나오는 것이 아니다.\n금지: ❌ 자산①(발견 스토리) 사용 금지. ②~⑥만 사용.\n각 아이디어는 서로 다른 클러스터 맥락 + 다른 브랜드 자산을 활용해라.',
+          clusterInput + avoidPrompt + '\n\n위 클러스터에서 정확히 2개 숏폼 아이디어. 제목은 "' + cat.label + '" 소비자가 클릭할 주제여야 한다.' + IDEA_FORMAT, 6000
         );
       } else if (perspType === "path") {
         var pathInput = '[카테고리] ' + cat.label + '\n[경로 상태] ' + (pre.ps === "verified" ? "🟢 확인됨" : "🟡 블루오션") + '\n[경로 데이터]\n' + (pre.paths || []).join('\n') + '\n[수요] ' + (pre.di || '');
         result = await callAI(
-          SYS_BASE + '\n\n"경로 발견" 관점. Path Finder가 발견한 소비자 검색 경로에서 아이디어를 만들어라.\n- 경로 확인: 그 경로 위에 놓을 콘텐츠\n- 블루오션: 빈 연결을 채울 콘텐츠',
-          pathInput + avoidPrompt + '\n\n위 경로 데이터에서 정확히 2개 숏폼 아이디어.' + IDEA_FORMAT, 6000
+          SYS_BASE(cat.label) + '\n\n"경로 발견" 관점.\n이 검색 경로의 중간 지점에서, 소비자가 다음 단계로 넘어갈 때 볼 만한 콘텐츠를 만들어라.\n경로의 키워드가 제목이 되어야 한다. 세포랩은 경로의 끝에서 발견되는 것.\n금지: ❌ 자산①(발견 스토리) 사용 금지. ❌ 브랜드 스토리텔링 금지.\n필수: 제목/후킹에 경로의 실제 검색 키워드를 반영하라.',
+          pathInput + avoidPrompt + '\n\n위 경로 데이터에서 정확히 2개 숏폼 아이디어. 경로의 키워드로 후킹하고, 경로의 빈틈을 채우는 콘텐츠를 만들어라.' + IDEA_FORMAT, 6000
         );
       } else {
         var aiInput = '[카테고리] ' + cat.label + '\n[데이터 요약] CEP: ' + (pre.cep || '').substring(0, 150) + '\n경로: ' + (pre.ps === "verified" ? "확인" : "블루오션") + '\n수요: ' + (pre.di || '').substring(0, 100);
         result = await callAI(
-          SYS_BASE + '\n\n"AI 크리에이티브 인사이트" 관점. 데이터에 직접 없지만 브랜드 자산 × 관심사 교차에서 나오는 의외의 연결. "세상을 바꾼 실수들 — 페니실린, 포스트잇, 세포랩" 수준의 크리에이티브 점프.',
-          aiInput + avoidPrompt + '\n\n브랜드 자산 × "' + cat.label + '" 교차에서 정확히 2개 숏폼 아이디어. 데이터에 갇히지 말고 뛰어라.' + IDEA_FORMAT, 6000
+          SYS_BASE(cat.label) + '\n\n"AI 크리에이티브 인사이트" 관점.\n"' + cat.label + '" 카테고리에서 가장 공유될 만한 콘텐츠를 먼저 생각하고, 그 안에서 세포랩이 자연스럽게 등장할 수 있는 의외의 연결을 찾아라.\n이 관점만 자산①(발견 스토리)을 사용할 수 있다.\n자산: ④⑤⑥을 우선 활용. 2개 중 최소 1개는 ④⑤⑥ 중 하나를 써라.\n금지: ❌ 클러스터/경로 데이터를 직접 참조하지 마라.',
+          aiInput + avoidPrompt + '\n\n"' + cat.label + '" 소비자가 공유하고 싶을 정도로 재밌는 숏폼 2개. 반전 구조로.' + IDEA_FORMAT, 6000
         );
       }
     } catch (e) { result = "⚠️ " + e.message; }
@@ -276,8 +278,8 @@ export default function App() {
       await wt(1000); /* 데이터 로딩 시뮬레이션 */
       var clusterInput = '[카테고리] ' + cat.label + '\n[클러스터 데이터]\n' + (pre.clusters || []).join('\n') + '\n[수요] ' + (pre.di || '') + '\n[CEP] ' + (pre.cep || '');
       var clusterIdeas = await callAI(
-        SYS_BASE + '\n\n"클러스터 발견" 관점. Cluster Finder가 발견한 소비자 검색 맥락(CEP)에서 아이디어를 만들어라. 각 클러스터가 보여주는 소비자 맥락마다 콘텐츠 기회가 다르다.',
-        clusterInput + '\n\n위 클러스터에서 발견된 서로 다른 소비자 맥락에서 정확히 2개 숏폼 아이디어.' + IDEA_FORMAT, 6000
+        SYS_BASE(cat.label) + '\n\n"클러스터 발견" 관점.\n이 클러스터의 소비자 맥락에서, 소비자가 진짜로 관심 있는 주제로 콘텐츠를 만들어라.\n세포랩은 콘텐츠 안에서 자연스럽게 발견되는 것이지, 제목에 나오는 것이 아니다.\n금지: ❌ 자산①(발견 스토리) 사용 금지. ②~⑥만 사용.\n각 아이디어는 서로 다른 클러스터 맥락 + 다른 브랜드 자산을 활용해라.',
+        clusterInput + '\n\n위 클러스터에서 정확히 2개 숏폼 아이디어. 제목은 "' + cat.label + '" 소비자가 클릭할 주제여야 한다.' + IDEA_FORMAT, 6000
       );
       setCatData(function(pv) { var n = Object.assign({}, pv); n[cat.id] = Object.assign({}, n[cat.id] || {}, { pre: pre, clusterIdeas: clusterIdeas }); return n; });
       await wt(1500);
@@ -287,8 +289,8 @@ export default function App() {
       await wt(1000); /* 데이터 로딩 시뮬레이션 */
       var pathInput = '[카테고리] ' + cat.label + '\n[경로 상태] ' + (pre.ps === "verified" ? "🟢 확인됨" : "🟡 블루오션") + '\n[경로 데이터]\n' + (pre.paths || []).join('\n') + '\n[수요] ' + (pre.di || '');
       var pathIdeas = await callAI(
-        SYS_BASE + '\n\n"경로 발견" 관점. Path Finder가 발견한 소비자 검색 경로에서 아이디어를 만들어라.\n- 경로 확인: 그 경로 위에 놓을 콘텐츠\n- 블루오션: 빈 연결을 채울 콘텐츠 (이 관심사에서 세포랩까지 다리를 놓는 콘텐츠)',
-        pathInput + '\n\n위 경로 데이터에서 정확히 2개 숏폼 아이디어.' + IDEA_FORMAT, 6000
+        SYS_BASE(cat.label) + '\n\n"경로 발견" 관점.\n이 검색 경로의 중간 지점에서, 소비자가 다음 단계로 넘어갈 때 볼 만한 콘텐츠를 만들어라.\n경로의 키워드가 제목이 되어야 한다. 세포랩은 경로의 끝에서 발견되는 것.\n금지: ❌ 자산①(발견 스토리) 사용 금지. ❌ 브랜드 스토리텔링 금지.\n필수: 제목/후킹에 경로의 실제 검색 키워드를 반영하라.',
+        pathInput + '\n\n위 경로 데이터에서 정확히 2개 숏폼 아이디어. 경로의 키워드로 후킹하고, 경로의 빈틈을 채우는 콘텐츠를 만들어라.' + IDEA_FORMAT, 6000
       );
       setCatData(function(pv) { var n = Object.assign({}, pv); n[cat.id] = Object.assign({}, n[cat.id] || {}, { pathIdeas: pathIdeas }); return n; });
       await wt(1500);
@@ -298,8 +300,8 @@ export default function App() {
       await wt(800); /* 데이터 로딩 시뮬레이션 */
       var aiInput = '[카테고리] ' + cat.label + '\n[데이터 요약] CEP: ' + (pre.cep || '').substring(0, 150) + '\n경로: ' + (pre.ps === "verified" ? "확인" : "블루오션") + '\n수요: ' + (pre.di || '').substring(0, 100);
       var aiIdeas = await callAI(
-        SYS_BASE + '\n\n"AI 크리에이티브 인사이트" 관점. 데이터에 직접 나오지 않지만, 이 관심사 카테고리와 세포랩의 브랜드 자산을 교차시키면 나오는 의외의 연결에서 아이디어를 만들어라.\n\n"세상을 바꾼 실수들 — 페니실린, 포스트잇, 세포랩" 수준의 크리에이티브 점프. 데이터가 방향만 잡아줬으니 자유롭게 뛰어라.',
-        aiInput + '\n\n브랜드 자산 × "' + cat.label + '" 교차에서 정확히 2개 숏폼 아이디어. 데이터에 갇히지 말고 뛰어라.' + IDEA_FORMAT, 6000
+        SYS_BASE(cat.label) + '\n\n"AI 크리에이티브 인사이트" 관점.\n"' + cat.label + '" 카테고리에서 가장 공유될 만한 콘텐츠를 먼저 생각하고, 그 안에서 세포랩이 자연스럽게 등장할 수 있는 의외의 연결을 찾아라.\n이 관점만 자산①(발견 스토리)을 사용할 수 있다.\n자산: ④⑤⑥을 우선 활용. 2개 중 최소 1개는 ④⑤⑥ 중 하나를 써라.\n금지: ❌ 클러스터/경로 데이터를 직접 참조하지 마라.',
+        aiInput + '\n\n"' + cat.label + '" 소비자가 공유하고 싶을 정도로 재밌는 숏폼 2개. 반전 구조로.' + IDEA_FORMAT, 6000
       );
       setCatData(function(pv) { var n = Object.assign({}, pv); n[cat.id] = Object.assign({}, n[cat.id] || {}, { aiIdeas: aiIdeas }); return n; });
       setPhases(function(p) { var n = Object.assign({}, p); n[cat.id] = "done"; return n; });

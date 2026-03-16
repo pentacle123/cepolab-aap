@@ -1,10 +1,14 @@
 export async function POST(request) {
+  const apiKey = process.env.CEPOLAB_API_KEY || process.env.ANTHROPIC_API_KEY;
+  if (!apiKey) {
+    return Response.json({ error: { message: "API key not set. Set CEPOLAB_API_KEY in .env.local" } }, { status: 500 });
+  }
   try {
     const body = await request.json();
     
     const headers = {
       "Content-Type": "application/json",
-      "x-api-key": process.env.ANTHROPIC_API_KEY,
+      "x-api-key": apiKey,
       "anthropic-version": "2023-06-01",
     };
 
