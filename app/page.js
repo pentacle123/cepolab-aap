@@ -31,10 +31,8 @@ var CATS = [
   { id: "slowaging", label: "저속노화", icon: "🧬", color: "#2D8B5F" },
   { id: "food", label: "푸드/식문화", icon: "🍳", color: "#D97706" },
   { id: "fitness", label: "운동/피트니스", icon: "🏃", color: "#7C5BBF" },
-  { id: "wellness", label: "수면/웰니스", icon: "🌙", color: "#9B6DBF" },
   { id: "docu", label: "다큐/과학교양", icon: "🎬", color: "#BF5B8A" },
   { id: "health", label: "건강/다이어트", icon: "🥗", color: "#C4503A" },
-  { id: "travel", label: "여행/호캉스", icon: "✈️", color: "#3B82C4" },
   { id: "family", label: "육아/가족", icon: "👨‍👩‍👧", color: "#E8854A" },
   { id: "minimal", label: "미니멀라이프", icon: "🏠", color: "#4B8B3B" },
   { id: "business", label: "비즈니스/창업", icon: "💼", color: "#5B6ABF" },
@@ -211,7 +209,7 @@ function Bottle() {
 
 /* ═══ IDEA PROMPT TEMPLATE ═══ */
 function SYS_BASE(catLabel) {
-  return '너는 "' + catLabel + '" 분야의 숏폼 콘텐츠 크리에이터다. 이 분야 소비자가 진짜로 보고 싶어하는 콘텐츠를 만든다.\n\n핵심 규칙:\n1. 제목과 후킹은 반드시 "' + catLabel + '" 카테고리의 관심사여야 한다. 세포랩, 화장품, 에센스, 스킨케어 같은 단어가 제목/후킹에 나오면 안 된다.\n2. 콘텐츠의 시작은 100% 이 카테고리의 이야기다. 소비자가 "이건 내 관심사 콘텐츠"라고 느껴야 한다.\n3. 콘텐츠 중반에 "그런데 이게 사실은 피부와도 관련이 있다" 같은 반전/연결이 나온다.\n4. 그 연결 지점에서 세포랩의 브랜드 자산이 자연스럽게 등장한다.\n5. 소비자 반응: "이게 화장품 광고였어?" (마지막에 놀라는 구조)\n\n세포랩 브랜드 자산 (콘텐츠 중반 이후에만 사용):\n① 발견 스토리: 당뇨 신약 연구 중 세리포리아 락세라타 우연 발견\n② AGEs 억제: 최종당화산물 억제 원천기술\n③ CLEPS® 92.8%: 10년 150억 자체 R&D. 단일 유효성분 92.8% 고함량\n④ 5성분 미니멀: 핵심 5가지 성분만\n⑤ 프리케어: 화장품 보다 먼저 세포랩 — 세안 후 첫 단계\n⑥ 피부 기초체력: 피부에도 기초체력이 있다는 새로운 관점\n제품: 바이오제닉 에센스 90%, 하이드레이션, 블렌디드 50%, 솝, 마스크\n타겟: 4050 여성\n\n⚠️ 절대 규칙 — 사실이 아닌 내용 금지:\n1. 모르는 사실을 만들지 마라. 모델의 경력, 기업의 재무, 연구 결과 등을 추측하지 마라.\n2. 확인된 사실만 사용: 위 ①~⑥ 브랜드 자산에 있는 내용만.\n3. 클러스터 키워드는 "소비자가 이렇게 검색한다"는 데이터일 뿐, 사실이 아니다.\n4. 2개 아이디어는 반드시 서로 다른 브랜드 자산(①~⑥)을 활용해라. 같은 자산을 두 번 쓰지 마라.';
+  return '너는 "' + catLabel + '" 분야의 숏폼 콘텐츠 크리에이터다. 이 분야 소비자가 진짜로 보고 싶어하는 콘텐츠를 만든다.\n\n핵심 규칙:\n1. 제목과 후킹은 반드시 "' + catLabel + '" 카테고리의 관심사여야 한다. 세포랩, 화장품, 에센스, 스킨케어 같은 단어가 제목/후킹에 나오면 안 된다.\n2. 콘텐츠의 시작은 100% 이 카테고리의 이야기다. 소비자가 "이건 내 관심사 콘텐츠"라고 느껴야 한다.\n3. 콘텐츠 중반에 "그런데 이게 사실은 피부와도 관련이 있다" 같은 반전/연결이 나온다.\n4. 그 연결 지점에서 세포랩의 브랜드 자산이 자연스럽게 등장한다.\n5. 소비자 반응: "이게 화장품 광고였어?" (마지막에 놀라는 구조)\n\n세포랩 브랜드 자산 (콘텐츠 중반 이후에만 사용):\n① 발견 스토리: 당뇨 신약 연구 중 세리포리아 락세라타 우연 발견\n② AGEs 억제: 최종당화산물 억제 원천기술\n③ CLEPS® 92.8%: 10년 150억 자체 R&D. 단일 유효성분 92.8% 고함량\n④ 5성분 미니멀: 핵심 5가지 성분만\n⑤ 프리케어: 화장품 보다 먼저 세포랩 — 세안 후 첫 단계\n⑥ 피부 기초체력: 피부에도 기초체력이 있다는 새로운 관점\n제품: 바이오제닉 에센스 90%, 하이드레이션, 블렌디드 50%, 솝, 마스크\n타겟: 4050 여성\n\n⚠️ 절대 규칙 — 사실이 아닌 내용 금지:\n1. 모르는 사실을 만들지 마라. 모델의 경력, 기업의 재무, 연구 결과 등을 추측하지 마라.\n2. 확인된 사실만 사용: 위 ①~⑥ 브랜드 자산에 있는 내용만.\n3. 클러스터 키워드는 "소비자가 이렇게 검색한다"는 데이터일 뿐, 사실이 아니다.\n4. 2개 아이디어는 반드시 서로 다른 브랜드 자산(①~⑥)을 활용해라. 같은 자산을 두 번 쓰지 마라.\n5. 특정 인물(교수, 의사, 연구원, 인플루언서 등)을 콘텐츠에 언급하지 마라. 인물 대신 개념, 트렌드, 과학적 사실로 콘텐츠를 만들어라.';
 }
 var IDEA_FORMAT = '\n\n각 아이디어는 이 형식:\n\n**제목**: [릴스/숏폼] 이 카테고리 소비자가 클릭할 제목. 세포랩/화장품/에센스 단어 금지.\n**썸네일 후킹**: 이 카테고리의 관심사로만 후킹. 15자 이내. 세포랩/화장품 단어 금지.\n**반전 연결**: 카테고리 이야기에서 피부/세포랩으로 자연스럽게 넘어가는 한 줄.\n**배경무드**: HEX 6자리\n**핵심 메시지**: 한 줄\n**연결 상품**: 세포랩 제품명\n**활용 자산**: ①~⑥ 중 사용한 자산 번호와 이름\n**타겟**: 구체적 페르소나\n**수요 근거**: 관련 검색량/트렌드 한 줄';
 
@@ -379,7 +377,7 @@ export default function App() {
               <button onClick={selNone} style={{ background: "none", border: "none", color: C.gold, fontSize: 10, cursor: "pointer", textDecoration: "underline" }}>해제</button>
             </div>
           </div>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(5, 1fr)", gap: 5, marginBottom: 8 }}>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 5, marginBottom: 8 }}>
             {CATS.map(function(c) { var on = !!sel[c.id]; return <div key={c.id} onClick={function() { tog(c.id); }} style={{ padding: 8, borderRadius: 7, border: "2px solid " + (on ? c.color : C.border), background: on ? c.color + "06" : C.card, cursor: "pointer", textAlign: "center" }}>
               <span style={{ fontSize: 14 }}>{c.icon}</span>
               <div style={{ fontSize: 9, fontWeight: on ? 800 : 500, color: on ? C.text : C.sub, marginTop: 2 }}>{c.label}</div>
