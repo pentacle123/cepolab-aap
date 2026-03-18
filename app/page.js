@@ -203,7 +203,7 @@ function ResultCard({ cat, data, onRegen }) {
         <div style={{ fontSize: 11, fontWeight: 800, color: C.text, marginBottom: 6 }}>✨ 콘텐츠 아이디어</div>
         {data.ideaLoading ? <div style={{ textAlign: "center", padding: 20, fontSize: 11, color: C.gold, animation: "pulse 1.5s ease infinite" }}>✨ 6개 아이디어 생성 중...</div>
         : parsed.length > 0 ? <div>
-          <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>{parsed.map(function(idea, i) { return <IdeaCard key={i} idea={idea} />; })}</div>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 6 }}>{parsed.map(function(idea, i) { return <IdeaCard key={i} idea={idea} />; })}</div>
           {onRegen && <div style={{ textAlign: "right", marginTop: 8 }}><button onClick={function(e) { e.stopPropagation(); onRegen(cat.id); }} style={{ padding: "5px 12px", borderRadius: 5, border: "1px solid " + C.gold + "30", background: "transparent", color: C.gold, fontSize: 10, fontWeight: 700, cursor: "pointer" }}>🔄 다른 각도로 재생성</button></div>}
         </div>
         : data.ideas ? <div>
