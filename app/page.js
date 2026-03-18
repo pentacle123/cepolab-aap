@@ -25,7 +25,6 @@ var BRAND_COMMERCIAL = [
   { icon: "💬", title: "피부도 세포니까, 세포랩", desc: "슬로건" },
   { icon: "⭐", title: "김민하 모델", desc: "2025~" },
 ];
-var BRAND_SHORT = "세포랩(CEPOLAB) 브랜드 자산 6가지:\n① 발견 스토리: 퓨젠바이오(모회사)가 당뇨 신약 연구 중 세리포리아 락세라타를 우연히 발견\n② AGEs 억제: 최종당화산물 억제 원천기술 — 피부 당화를 막는 과학\n③ CLEPS® 92.8%: 자체 R&D 10년간 150억 투입(외부 투자 아님). 단일 유효성분 92.8% 고함량\n④ 5성분 미니멀: 핵심 5가지 성분만. 친환경 바이오 배양\n⑤ 프리케어 포지셔닝: '화장품 보다 먼저 세포랩' — 세안 후 첫 단계\n⑥ 피부 기초체력: 피부에도 기초체력이 있다는 새로운 관점\n제품: 바이오제닉 에센스 90%, 하이드레이션, 블렌디드 50%, 솝, 마스크\n타겟: 4050 여성\n\n⚠️ 중요: 사실과 다른 내용을 만들지 마라. '투자받은', '상장한', 'FDA 승인' 등 확인되지 않은 표현 금지. 브랜드 정보에 없는 사실을 추가하지 마라.";
 
 var CATS = [
   { id: "slowaging", label: "저속노화", icon: "🧬", color: "#2D8B5F" },
@@ -61,16 +60,16 @@ async function apiCall(body, retries, timeout) {
   }
   return { ok: false, text: "재시도 초과" };
 }
-async function callAI(s, u, maxTk) { var tk = maxTk || 4000; var timeout = tk >= 6000 ? 90000 : 55000; var res = await apiCall({ model: "claude-sonnet-4-20250514", max_tokens: tk, system: s, messages: [{ role: "user", content: u }] }, 3, timeout); return res.ok ? res.text : "(오류)"; }
+async function callAI(s, u, maxTk) { var tk = maxTk || 4000; var timeout = tk >= 6000 ? 120000 : 55000; var res = await apiCall({ model: "claude-sonnet-4-20250514", max_tokens: tk, system: s, messages: [{ role: "user", content: u }] }, 3, timeout); return res.ok ? res.text : "(오류)"; }
 
-/* ═══ Idea Parser — flexible ═══ */
+/* ═══ Idea Parser ═══ */
 function parseIdeas(text) {
   if (!text || text.length < 30) return [];
   var chunks = text.split(/(?=\*\*제목\*\*)/).filter(function(c) { return c.indexOf("**제목**") >= 0; });
   return chunks.map(function(chunk) {
     var get = function(key) { var m = chunk.match(new RegExp("\\*\\*" + key + "\\*\\*[:\\s]*(.+)", "i")); return m ? m[1].trim() : ""; };
     var cm = chunk.match(/(?:배경무드|배경)[^#]*#?([A-Fa-f0-9]{6})/);
-    return { title: get("제목"), hook: get("썸네일 후킹") || get("후킹"), twist: get("반전 연결") || get("반전"), bgColor: cm ? cm[1] : "8B6914", message: get("핵심 메시지") || get("메시지"), product: get("연결 상품") || get("상품"), asset: get("활용 자산") || get("자산"), why: get("왜 지금"), target: get("타겟"), demand: get("수요 근거") || get("수요") };
+    return { title: get("제목"), hook: get("썸네일 후킹") || get("후킹"), twist: get("반전 연결") || get("반전"), bgColor: cm ? cm[1] : "8B6914", message: get("핵심 메시지") || get("메시지"), product: get("연결 상품") || get("상품"), asset: get("활용 자산") || get("자산"), basis: get("근거") || get("데이터 근거"), target: get("타겟"), demand: get("수요 근거") || get("수요") };
   }).filter(function(x) { return x.title; });
 }
 
@@ -89,104 +88,107 @@ function PhoneMockup({ hook, bgColor, product }) {
   </div>;
 }
 
-/* ═══ Idea Card with Demand ═══ */
-function IdeaCard({ idea, idx }) {
+/* ═══ Idea Card ═══ */
+function IdeaCard({ idea }) {
+  var basisIcon = (idea.basis || "").indexOf("Cluster") >= 0 || (idea.basis || "").indexOf("클러스터") >= 0 ? "🎯" : (idea.basis || "").indexOf("Path") >= 0 || (idea.basis || "").indexOf("경로") >= 0 ? "🗺️" : "💡";
+  var basisColor = basisIcon === "🎯" ? C.accent : basisIcon === "🗺️" ? C.green : C.gold;
   return <div style={{ padding: 10, borderRadius: 8, background: "#" + idea.bgColor + "06", border: "1px solid #" + idea.bgColor + "18", display: "flex", gap: 8 }}>
     <PhoneMockup hook={idea.hook} bgColor={idea.bgColor} product={idea.product} />
     <div style={{ flex: 1, minWidth: 0 }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 4, marginBottom: 3 }}>
+        {idea.basis && <span style={{ padding: "1px 5px", borderRadius: 3, background: basisColor + "12", color: basisColor, fontSize: 7, fontWeight: 700 }}>{basisIcon} {idea.basis.length > 20 ? idea.basis.substring(0, 20) + "…" : idea.basis}</span>}
+        {idea.asset && <span style={{ padding: "1px 5px", borderRadius: 3, background: C.accent + "10", color: C.accent, fontSize: 7, fontWeight: 700 }}>{idea.asset}</span>}
+      </div>
       <div style={{ fontSize: 12, fontWeight: 700, color: C.text, lineHeight: 1.35, marginBottom: 4 }}>{idea.title}</div>
       {idea.hook && <div style={{ fontSize: 10, marginBottom: 4 }}><span style={{ padding: "1px 4px", borderRadius: 3, background: C.gold, color: "#fff", fontSize: 7, fontWeight: 700, marginRight: 4 }}>HOOK</span><span style={{ color: C.sub }}>{idea.hook}</span></div>}
       {idea.twist && <div style={{ fontSize: 10, color: C.sub, marginBottom: 2, padding: "2px 5px", borderRadius: 3, background: C.accent + "08", borderLeft: "2px solid " + C.accent }}><strong style={{ color: C.accent }}>반전</strong> {idea.twist}</div>}
       {idea.message && <div style={{ fontSize: 10, color: C.sub, marginBottom: 2 }}><strong style={{ color: C.goldDeep }}>메시지</strong> {idea.message}</div>}
-      {idea.product && <div style={{ fontSize: 10, marginBottom: 2 }}><strong style={{ color: C.goldDeep }}>연결</strong> <span style={{ padding: "1px 4px", borderRadius: 3, background: C.goldLight, color: C.goldDeep, fontWeight: 600, fontSize: 9 }}>{idea.product}</span>{idea.asset && <span style={{ marginLeft: 4, padding: "1px 4px", borderRadius: 3, background: C.accent + "10", color: C.accent, fontWeight: 600, fontSize: 8 }}>{idea.asset}</span>}</div>}
+      {idea.product && <div style={{ fontSize: 10, marginBottom: 2 }}><strong style={{ color: C.goldDeep }}>연결</strong> <span style={{ padding: "1px 4px", borderRadius: 3, background: C.goldLight, color: C.goldDeep, fontWeight: 600, fontSize: 9 }}>{idea.product}</span></div>}
       {idea.target && <div style={{ fontSize: 10, color: C.sub }}><strong style={{ color: C.goldDeep }}>타겟</strong> {idea.target}</div>}
       {idea.demand && <div style={{ fontSize: 10, marginTop: 3, padding: "3px 6px", borderRadius: 4, background: C.accent + "08", border: "1px solid " + C.accent + "15" }}><strong style={{ color: C.accent }}>📊 수요</strong> <span style={{ color: C.sub }}>{idea.demand}</span></div>}
     </div>
   </div>;
 }
 
-/* ═══ Perspective Section with Regen ═══ */
-function PerspectiveSection({ icon, title, subtitle, color, description, ideas, loading, onRegen }) {
-  var _o = useState(true), open = _o[0], setOpen = _o[1];
-  var parsed = parseIdeas(ideas);
-  return <div style={{ marginBottom: 8, borderRadius: 10, border: "1.5px solid " + color + "25", background: C.card, overflow: "hidden" }}>
-    <div onClick={function() { setOpen(!open); }} style={{ padding: "10px 12px", display: "flex", alignItems: "center", gap: 8, cursor: "pointer", background: color + "06" }}>
-      <span style={{ fontSize: 16 }}>{icon}</span>
-      <div style={{ flex: 1 }}>
-        <div style={{ fontSize: 13, fontWeight: 800, color: color }}>{title} <span style={{ fontSize: 10, fontWeight: 400, color: C.muted }}>{subtitle}</span></div>
-        {description && <div style={{ fontSize: 10, color: C.sub, marginTop: 1 }}>{description}</div>}
-      </div>
-      <span style={{ fontSize: 10, color: C.muted }}>{parsed.length > 0 ? parsed.length + "개 아이디어" : ""}</span>
-      <span style={{ color: color, fontSize: 10, fontWeight: 800 }}>{open ? "▴" : "▾"}</span>
+/* ═══ Data Evidence Panel (collapsible) ═══ */
+function DataPanel({ icon, title, color, summary, children }) {
+  var _o = useState(false), open = _o[0], setOpen = _o[1];
+  return <div style={{ marginBottom: 4, borderRadius: 6, border: "1px solid " + color + "20", overflow: "hidden" }}>
+    <div onClick={function() { setOpen(!open); }} style={{ padding: "6px 10px", display: "flex", alignItems: "center", gap: 6, cursor: "pointer", background: color + "04" }}>
+      <span style={{ fontSize: 12 }}>{icon}</span>
+      <span style={{ fontSize: 10, fontWeight: 700, color: color }}>{title}</span>
+      <span style={{ flex: 1, fontSize: 9, color: C.sub, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{summary}</span>
+      <span style={{ color: color, fontSize: 8, fontWeight: 800 }}>{open ? "▴" : "▾"}</span>
     </div>
-    {open && <div style={{ padding: "8px 12px 12px" }}>
-      {loading ? <div style={{ textAlign: "center", padding: 14, fontSize: 11, color: C.gold, animation: "pulse 1.5s ease infinite" }}>🔄 새로운 아이디어 생성 중...</div>
-      : parsed.length > 0 ? <div>
-        <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>{parsed.map(function(idea, i) { return <IdeaCard key={i} idea={idea} idx={i} />; })}</div>
-        {onRegen && <div style={{ textAlign: "right", marginTop: 6 }}><button onClick={function(e) { e.stopPropagation(); onRegen(); }} style={{ padding: "4px 10px", borderRadius: 5, border: "1px solid " + color + "30", background: "transparent", color: color, fontSize: 9, fontWeight: 700, cursor: "pointer" }}>🔄 다른 각도로 재생성</button></div>}
-      </div>
-      : ideas ? <div>
-        <div style={{ fontSize: 11, color: C.sub, lineHeight: 1.6, whiteSpace: "pre-line" }}>{ideas}</div>
-        {onRegen && <div style={{ textAlign: "right", marginTop: 6 }}><button onClick={function(e) { e.stopPropagation(); onRegen(); }} style={{ padding: "4px 10px", borderRadius: 5, border: "1px solid " + color + "30", background: "transparent", color: color, fontSize: 9, fontWeight: 700, cursor: "pointer" }}>🔄 다른 각도로 재생성</button></div>}
-      </div>
-      : <div style={{ fontSize: 11, color: C.muted, textAlign: "center", padding: 10 }}>생성 중...</div>}
-    </div>}
+    {open && <div style={{ padding: "6px 10px 8px", borderTop: "1px solid " + color + "12", fontSize: 10, color: C.sub, lineHeight: 1.6 }}>{children}</div>}
   </div>;
 }
 
-/* ═══ Process Flow ═══ */
+/* ═══ Process Flow (4 steps) ═══ */
 function ProcessFlow({ phase }) {
-  var st = [{ l: "클러스터 발견", ic: "🎯" }, { l: "경로 발견", ic: "🗺️" }, { l: "AI 인사이트", ic: "💡" }];
-  var pI = { cluster: 0, path: 1, ai: 2, done: 3 }, ci = pI[phase] !== undefined ? pI[phase] : -1;
+  var st = [{ l: "클러스터", ic: "🎯" }, { l: "경로", ic: "🗺️" }, { l: "수요", ic: "📊" }, { l: "아이디어", ic: "✨" }];
+  var pI = { cluster: 0, path: 1, demand: 2, idea: 3, done: 4 }, ci = pI[phase] !== undefined ? pI[phase] : -1;
   return <div style={{ display: "flex", padding: "6px 0" }}>{st.map(function(x, i) {
     var dn = i < ci, ac = i === ci;
     return <div key={i} style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", position: "relative", opacity: dn || ac ? 1 : 0.3 }}>
-      <div style={{ width: 28, height: 28, borderRadius: 7, background: dn || ac ? C.gold + "15" : C.alt, border: "2px solid " + (dn || ac ? C.gold : C.border), display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 2, animation: ac ? "pulse 1.5s ease infinite" : "none" }}><span style={{ fontSize: 12 }}>{x.ic}</span></div>
-      <div style={{ fontSize: 9, fontWeight: 700, color: dn || ac ? C.text : C.muted }}>{x.l}</div>
-      {i < 2 && <div style={{ position: "absolute", top: 14, left: "calc(50% + 16px)", width: "calc(100% - 32px)", height: 2, borderRadius: 1, background: dn ? C.gold + "35" : C.border }} />}
+      <div style={{ width: 26, height: 26, borderRadius: 6, background: dn || ac ? C.gold + "15" : C.alt, border: "2px solid " + (dn || ac ? C.gold : C.border), display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 2, animation: ac ? "pulse 1.5s ease infinite" : "none" }}><span style={{ fontSize: 11 }}>{x.ic}</span></div>
+      <div style={{ fontSize: 8, fontWeight: 700, color: dn || ac ? C.text : C.muted }}>{x.l}</div>
+      {i < 3 && <div style={{ position: "absolute", top: 13, left: "calc(50% + 15px)", width: "calc(100% - 30px)", height: 2, borderRadius: 1, background: dn ? C.gold + "35" : C.border }} />}
     </div>;
   })}</div>;
 }
 
-/* ═══ Result Card — 3 Perspectives ═══ */
+/* ═══ Result Card — Data Evidence + Unified Ideas ═══ */
 function ResultCard({ cat, data, onRegen }) {
   var _o = useState(true), open = _o[0], setOpen = _o[1];
+  var pre = data.pre || {};
+  var parsed = parseIdeas(data.ideas || "");
   return <div style={{ marginBottom: 10, borderRadius: 12, border: "2px solid " + C.border, background: C.card, overflow: "hidden" }}>
+    {/* Header */}
     <div onClick={function() { setOpen(!open); }} style={{ padding: "12px 14px", display: "flex", alignItems: "center", gap: 8, cursor: "pointer", background: open ? C.alt : C.card }}>
       <div style={{ width: 34, height: 34, borderRadius: 8, background: cat.color + "12", border: "2px solid " + cat.color + "25", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 17 }}>{cat.icon}</div>
       <div style={{ flex: 1 }}>
         <div style={{ fontSize: 14, fontWeight: 800, color: cat.color }}>{cat.label}</div>
-        <div style={{ fontSize: 10, color: C.sub }}>{data.pre ? (data.pre.ps === "verified" ? "🟢 경로 확인" : "🟡 블루오션") : ""} · {data.pre ? data.pre.di.substring(0, 40) + "..." : ""}</div>
+        <div style={{ fontSize: 10, color: C.sub }}>{pre.ps === "verified" ? "🟢 경로 확인" : "🟡 블루오션"} · {(pre.di || "").substring(0, 45)}...</div>
       </div>
+      <span style={{ fontSize: 10, color: C.muted }}>{parsed.length > 0 ? parsed.length + "개" : ""}</span>
       <span style={{ color: cat.color, fontSize: 11, fontWeight: 800 }}>{open ? "▴" : "▾"}</span>
     </div>
     {open && <div style={{ padding: "0 14px 14px", borderTop: "1px solid " + C.border }}>
-      <ProcessFlow phase="done" />
-      
-      <PerspectiveSection
-        icon="🎯" title="클러스터 발견" subtitle="Cluster Finder"
-        color={C.accent}
-        description={"소비자가 이런 맥락에서 검색한다 → 이 맥락에 세포랩 콘텐츠를 놓자"}
-        ideas={data.clusterIdeas || ""}
-        loading={data.clusterLoading}
-        onRegen={onRegen ? function() { onRegen(cat.id, "cluster"); } : null}
-      />
-      <PerspectiveSection
-        icon="🗺️" title="경로 발견" subtitle="Path Finder"
-        color={C.green}
-        description={(data.pre && data.pre.ps === "verified" ? "🟢 확인된 경로 위에 콘텐츠를 놓자" : "🟡 이 블루오션에 다리를 놓자")}
-        ideas={data.pathIdeas || ""}
-        loading={data.pathLoading}
-        onRegen={onRegen ? function() { onRegen(cat.id, "path"); } : null}
-      />
-      <PerspectiveSection
-        icon="💡" title="AI 크리에이티브 인사이트" subtitle="Creative Jump"
-        color={C.gold}
-        description={"데이터에 직접 없지만, 브랜드 자산 × 관심사 교차에서 발견한 의외의 연결"}
-        ideas={data.aiIdeas || ""}
-        loading={data.aiLoading}
-        onRegen={onRegen ? function() { onRegen(cat.id, "ai"); } : null}
-      />
+      {/* Data Evidence Panels */}
+      <div style={{ padding: "8px 0 6px" }}>
+        <div style={{ fontSize: 9, fontWeight: 700, color: C.muted, marginBottom: 4, letterSpacing: "0.05em" }}>📋 데이터 근거</div>
+        <DataPanel icon="🎯" title="클러스터 발견" color={C.accent} summary={(pre.cep || "").substring(0, 50) + "..."}>
+          <div style={{ fontWeight: 700, marginBottom: 3 }}>소비자 검색 맥락 (CEP)</div>
+          <div style={{ marginBottom: 6 }}>{pre.cep || ""}</div>
+          <div style={{ fontWeight: 700, marginBottom: 3 }}>클러스터 목록</div>
+          {(pre.clusters || []).map(function(cl, i) { return <div key={i} style={{ padding: "3px 0", borderBottom: "1px solid " + C.border + "80" }}>• {cl}</div>; })}
+        </DataPanel>
+        <DataPanel icon="🗺️" title="경로 발견" color={C.green} summary={(pre.ps === "verified" ? "🟢 확인" : "🟡 블루오션") + " — " + (pre.pi || "").substring(0, 40) + "..."}>
+          <div style={{ fontWeight: 700, marginBottom: 3 }}>경로 상태: {pre.ps === "verified" ? <span style={{ color: C.green }}>🟢 확인됨</span> : <span style={{ color: C.gold }}>🟡 블루오션</span>}</div>
+          <div style={{ marginBottom: 6 }}>{pre.pi || ""}</div>
+          <div style={{ fontWeight: 700, marginBottom: 3 }}>검색 경로</div>
+          {(pre.paths || []).map(function(pt, i) { return <div key={i} style={{ padding: "3px 0", borderBottom: "1px solid " + C.border + "80", fontFamily: "monospace", fontSize: 9 }}>→ {pt}</div>; })}
+        </DataPanel>
+        <DataPanel icon="📊" title="수요 검증" color={C.gold} summary={(pre.di || "").substring(0, 50) + "..."}>
+          <div>{pre.di || ""}</div>
+        </DataPanel>
+      </div>
+
+      {/* Ideas */}
+      <div style={{ borderTop: "1px solid " + C.border, paddingTop: 8 }}>
+        <div style={{ fontSize: 11, fontWeight: 800, color: C.text, marginBottom: 6 }}>✨ 콘텐츠 아이디어</div>
+        {data.ideaLoading ? <div style={{ textAlign: "center", padding: 20, fontSize: 11, color: C.gold, animation: "pulse 1.5s ease infinite" }}>✨ 6개 아이디어 생성 중...</div>
+        : parsed.length > 0 ? <div>
+          <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>{parsed.map(function(idea, i) { return <IdeaCard key={i} idea={idea} />; })}</div>
+          {onRegen && <div style={{ textAlign: "right", marginTop: 8 }}><button onClick={function(e) { e.stopPropagation(); onRegen(cat.id); }} style={{ padding: "5px 12px", borderRadius: 5, border: "1px solid " + C.gold + "30", background: "transparent", color: C.gold, fontSize: 10, fontWeight: 700, cursor: "pointer" }}>🔄 다른 각도로 재생성</button></div>}
+        </div>
+        : data.ideas ? <div>
+          <div style={{ fontSize: 11, color: C.sub, lineHeight: 1.6, whiteSpace: "pre-line" }}>{data.ideas}</div>
+          {onRegen && <div style={{ textAlign: "right", marginTop: 8 }}><button onClick={function(e) { e.stopPropagation(); onRegen(cat.id); }} style={{ padding: "5px 12px", borderRadius: 5, border: "1px solid " + C.gold + "30", background: "transparent", color: C.gold, fontSize: 10, fontWeight: 700, cursor: "pointer" }}>🔄 다른 각도로 재생성</button></div>}
+        </div>
+        : null}
+      </div>
     </div>}
   </div>;
 }
@@ -209,9 +211,9 @@ function Bottle() {
 
 /* ═══ IDEA PROMPT TEMPLATE ═══ */
 function SYS_BASE(catLabel) {
-  return '너는 "' + catLabel + '" 분야의 숏폼 콘텐츠 크리에이터다. 이 분야 소비자가 진짜로 보고 싶어하는 콘텐츠를 만든다.\n\n핵심 규칙:\n1. 제목과 후킹은 반드시 "' + catLabel + '" 카테고리의 관심사여야 한다. 세포랩, 화장품, 에센스, 스킨케어 같은 단어가 제목/후킹에 나오면 안 된다.\n2. 콘텐츠의 시작은 100% 이 카테고리의 이야기다. 소비자가 "이건 내 관심사 콘텐츠"라고 느껴야 한다.\n3. 콘텐츠 중반에 "그런데 이게 사실은 피부와도 관련이 있다" 같은 반전/연결이 나온다.\n4. 그 연결 지점에서 세포랩의 브랜드 자산이 자연스럽게 등장한다.\n5. 소비자 반응: "이게 화장품 광고였어?" (마지막에 놀라는 구조)\n\n세포랩 브랜드 자산 (콘텐츠 중반 이후에만 사용):\n① 발견 스토리: 당뇨 신약 연구 중 세리포리아 락세라타 우연 발견\n② AGEs 억제: 최종당화산물 억제 원천기술\n③ CLEPS® 92.8%: 10년 150억 자체 R&D. 단일 유효성분 92.8% 고함량\n④ 5성분 미니멀: 핵심 5가지 성분만\n⑤ 프리케어: 화장품 보다 먼저 세포랩 — 세안 후 첫 단계\n⑥ 피부 기초체력: 피부에도 기초체력이 있다는 새로운 관점\n제품: 바이오제닉 에센스 90%, 하이드레이션, 블렌디드 50%, 솝, 마스크\n타겟: 4050 여성\n\n⚠️ 절대 규칙 — 사실이 아닌 내용 금지:\n1. 모르는 사실을 만들지 마라. 모델의 경력, 기업의 재무, 연구 결과 등을 추측하지 마라.\n2. 확인된 사실만 사용: 위 ①~⑥ 브랜드 자산에 있는 내용만.\n3. 클러스터 키워드는 "소비자가 이렇게 검색한다"는 데이터일 뿐, 사실이 아니다.\n4. 2개 아이디어는 반드시 서로 다른 브랜드 자산(①~⑥)을 활용해라. 같은 자산을 두 번 쓰지 마라.\n5. 특정 인물(교수, 의사, 연구원, 인플루언서 등)을 콘텐츠에 언급하지 마라. 인물 대신 개념, 트렌드, 과학적 사실로 콘텐츠를 만들어라.';
+  return '너는 "' + catLabel + '" 분야의 숏폼 콘텐츠 크리에이터다. 이 분야 소비자가 진짜로 보고 싶어하는 콘텐츠를 만든다.\n\n핵심 규칙:\n1. 제목과 후킹은 반드시 "' + catLabel + '" 카테고리의 관심사여야 한다. 세포랩, 화장품, 에센스, 스킨케어 같은 단어가 제목/후킹에 나오면 안 된다.\n2. 콘텐츠의 시작은 100% 이 카테고리의 이야기다. 소비자가 "이건 내 관심사 콘텐츠"라고 느껴야 한다.\n3. 콘텐츠 중반에 "그런데 이게 사실은 피부와도 관련이 있다" 같은 반전/연결이 나온다.\n4. 그 연결 지점에서 세포랩의 브랜드 자산이 자연스럽게 등장한다.\n5. 소비자 반응: "이게 화장품 광고였어?" (마지막에 놀라는 구조)\n\n세포랩 브랜드 자산 (콘텐츠 중반 이후에만 사용):\n① 발견 스토리: 당뇨 신약 연구 중 세리포리아 락세라타 우연 발견\n② AGEs 억제: 최종당화산물 억제 원천기술\n③ CLEPS® 92.8%: 10년 150억 자체 R&D. 단일 유효성분 92.8% 고함량\n④ 5성분 미니멀: 핵심 5가지 성분만\n⑤ 프리케어: 화장품 보다 먼저 세포랩 — 세안 후 첫 단계\n⑥ 피부 기초체력: 피부에도 기초체력이 있다는 새로운 관점\n제품: 바이오제닉 에센스 90%, 하이드레이션, 블렌디드 50%, 솝, 마스크\n타겟: 4050 여성\n\n⚠️ 절대 규칙:\n1. 모르는 사실을 만들지 마라. 모델의 경력, 기업의 재무, 연구 결과 등을 추측하지 마라.\n2. 확인된 사실만 사용: 위 ①~⑥ 브랜드 자산에 있는 내용만.\n3. 클러스터 키워드는 "소비자가 이렇게 검색한다"는 데이터일 뿐, 사실이 아니다.\n4. 6개 아이디어는 반드시 서로 다른 브랜드 자산(①~⑥)을 각각 활용해라. 같은 자산을 두 번 쓰지 마라.\n5. 특정 인물(교수, 의사, 연구원, 인플루언서 등)을 콘텐츠에 언급하지 마라. 인물 대신 개념, 트렌드, 과학적 사실로 콘텐츠를 만들어라.';
 }
-var IDEA_FORMAT = '\n\n각 아이디어는 이 형식:\n\n**제목**: [릴스/숏폼] 이 카테고리 소비자가 클릭할 제목. 세포랩/화장품/에센스 단어 금지.\n**썸네일 후킹**: 이 카테고리의 관심사로만 후킹. 15자 이내. 세포랩/화장품 단어 금지.\n**반전 연결**: 카테고리 이야기에서 피부/세포랩으로 자연스럽게 넘어가는 한 줄.\n**배경무드**: HEX 6자리\n**핵심 메시지**: 한 줄\n**연결 상품**: 세포랩 제품명\n**활용 자산**: ①~⑥ 중 사용한 자산 번호와 이름\n**타겟**: 구체적 페르소나\n**수요 근거**: 관련 검색량/트렌드 한 줄';
+var IDEA_FORMAT = '\n\n각 아이디어는 이 형식:\n\n**제목**: [릴스/숏폼] 이 카테고리 소비자가 클릭할 제목. 세포랩/화장품/에센스 단어 금지.\n**썸네일 후킹**: 이 카테고리의 관심사로만 후킹. 15자 이내. 세포랩/화장품 단어 금지.\n**반전 연결**: 카테고리 이야기에서 피부/세포랩으로 자연스럽게 넘어가는 한 줄.\n**배경무드**: HEX 6자리\n**핵심 메시지**: 한 줄\n**연결 상품**: 세포랩 제품명\n**근거**: Cluster(어떤 맥락) / Path(어떤 경로) / AI(교차 인사이트) 중 하나. 어떤 데이터에서 출발했는지.\n**활용 자산**: ①~⑥ 중 사용한 자산 번호와 이름\n**타겟**: 구체적 페르소나\n**수요 근거**: 관련 검색량/트렌드 한 줄';
 
 /* ═══ Main ═══ */
 export default function App() {
@@ -226,85 +228,71 @@ export default function App() {
   function selAll() { var n = {}; CATS.forEach(function(c) { n[c.id] = true; }); setSel(n); }
   function selNone() { setSel({}); }
   var selCount = Object.values(sel).filter(Boolean).length;
-  function showT(msg) { setToast(msg); setTimeout(function() { setToast(null); }, 2500); }
 
-  /* ═══ Regenerate single perspective ═══ */
-  var regenPerspective = useCallback(async function(catId, perspType) {
+  /* ═══ Build data prompt from preloaded ═══ */
+  function buildDataPrompt(cat, pre) {
+    return '[카테고리] ' + cat.label +
+      '\n\n[클러스터 발견 — 소비자 검색 맥락]\n' + (pre.cep || '') + '\n클러스터:\n' + (pre.clusters || []).map(function(c) { return '• ' + c; }).join('\n') +
+      '\n\n[경로 발견 — 소비자 검색 여정]\n상태: ' + (pre.ps === "verified" ? "🟢 확인됨 (경로가 데이터로 증명됨)" : "🟡 블루오션 (연결이 비어있어 콘텐츠 기회)") + '\n' + (pre.pi || '') + '\n경로:\n' + (pre.paths || []).map(function(p) { return '→ ' + p; }).join('\n') +
+      '\n\n[수요 검증]\n' + (pre.di || '');
+  }
+
+  /* ═══ Regenerate all ideas ═══ */
+  var regenIdeas = useCallback(async function(catId) {
     var cat = CATS.find(function(c) { return c.id === catId; });
     if (!cat) return;
     var pre = PRELOADED[catId] || {};
     var prev = catData[catId] || {};
-    var prevIdeas = prev[perspType + "Ideas"] || "";
+    var prevIdeas = prev.ideas || "";
 
-    /* Mark as loading */
-    setCatData(function(pv) { var n = Object.assign({}, pv); n[catId] = Object.assign({}, n[catId] || {}, { [perspType + "Loading"]: true }); return n; });
+    setCatData(function(pv) { var n = Object.assign({}, pv); n[catId] = Object.assign({}, n[catId] || {}, { ideaLoading: true }); return n; });
 
-    var avoidPrompt = prevIdeas.length > 50 ? '\n\n⚠️ 이전에 나온 아이디어:\n' + prevIdeas.substring(0, 400) + '\n\n위와 완전히 다른 각도, 다른 소재, 다른 포맷의 아이디어를 만들어라. 같은 방향 반복 금지.' : '';
-    var result = "";
+    var avoidPrompt = prevIdeas.length > 50 ? '\n\n⚠️ 이전에 나온 아이디어:\n' + prevIdeas.substring(0, 600) + '\n\n위와 완전히 다른 각도, 다른 소재, 다른 포맷의 아이디어를 만들어라. 같은 방향 반복 금지.' : '';
+    var dataPrompt = buildDataPrompt(cat, pre);
 
     try {
-      if (perspType === "cluster") {
-        var clusterInput = '[카테고리] ' + cat.label + '\n[클러스터 데이터]\n' + (pre.clusters || []).join('\n') + '\n[수요] ' + (pre.di || '') + '\n[CEP] ' + (pre.cep || '');
-        result = await callAI(
-          SYS_BASE(cat.label) + '\n\n"클러스터 발견" 관점.\n이 클러스터의 소비자 맥락에서, 소비자가 진짜로 관심 있는 주제로 콘텐츠를 만들어라.\n세포랩은 콘텐츠 안에서 자연스럽게 발견되는 것이지, 제목에 나오는 것이 아니다.\n금지: ❌ 자산①(발견 스토리) 사용 금지. ②~⑥만 사용.\n각 아이디어는 서로 다른 클러스터 맥락 + 다른 브랜드 자산을 활용해라.',
-          clusterInput + avoidPrompt + '\n\n위 클러스터에서 정확히 2개 숏폼 아이디어. 제목은 "' + cat.label + '" 소비자가 클릭할 주제여야 한다.' + IDEA_FORMAT, 6000
-        );
-      } else if (perspType === "path") {
-        var pathInput = '[카테고리] ' + cat.label + '\n[경로 상태] ' + (pre.ps === "verified" ? "🟢 확인됨" : "🟡 블루오션") + '\n[경로 데이터]\n' + (pre.paths || []).join('\n') + '\n[수요] ' + (pre.di || '');
-        result = await callAI(
-          SYS_BASE(cat.label) + '\n\n"경로 발견" 관점.\n이 검색 경로의 중간 지점에서, 소비자가 다음 단계로 넘어갈 때 볼 만한 콘텐츠를 만들어라.\n경로의 키워드가 제목이 되어야 한다. 세포랩은 경로의 끝에서 발견되는 것.\n금지: ❌ 자산①(발견 스토리) 사용 금지. ❌ 브랜드 스토리텔링 금지.\n필수: 제목/후킹에 경로의 실제 검색 키워드를 반영하라.',
-          pathInput + avoidPrompt + '\n\n위 경로 데이터에서 정확히 2개 숏폼 아이디어. 경로의 키워드로 후킹하고, 경로의 빈틈을 채우는 콘텐츠를 만들어라.' + IDEA_FORMAT, 6000
-        );
-      } else {
-        var aiInput = '[카테고리] ' + cat.label + '\n[데이터 요약] CEP: ' + (pre.cep || '').substring(0, 150) + '\n경로: ' + (pre.ps === "verified" ? "확인" : "블루오션") + '\n수요: ' + (pre.di || '').substring(0, 100);
-        result = await callAI(
-          SYS_BASE(cat.label) + '\n\n"AI 크리에이티브 인사이트" 관점.\n"' + cat.label + '" 카테고리에서 가장 공유될 만한 콘텐츠를 먼저 생각하고, 그 안에서 세포랩이 자연스럽게 등장할 수 있는 의외의 연결을 찾아라.\n이 관점만 자산①(발견 스토리)을 사용할 수 있다.\n자산: ④⑤⑥을 우선 활용. 2개 중 최소 1개는 ④⑤⑥ 중 하나를 써라.\n금지: ❌ 클러스터/경로 데이터를 직접 참조하지 마라.',
-          aiInput + avoidPrompt + '\n\n"' + cat.label + '" 소비자가 공유하고 싶을 정도로 재밌는 숏폼 2개. 반전 구조로.' + IDEA_FORMAT, 6000
-        );
-      }
-    } catch (e) { result = "⚠️ " + e.message; }
-
-    setCatData(function(pv) { var n = Object.assign({}, pv); n[catId] = Object.assign({}, n[catId] || {}, { [perspType + "Ideas"]: result, [perspType + "Loading"]: false }); return n; });
+      var ideas = await callAI(
+        SYS_BASE(cat.label),
+        dataPrompt + avoidPrompt + '\n\n위 3가지 데이터(클러스터/경로/수요)를 종합해서 정확히 6개 숏폼 콘텐츠 아이디어를 만들어라.\n- 6개 모두 서로 다른 브랜드 자산(①~⑥)을 각각 하나씩 활용해야 한다.\n- 각 아이디어에 어떤 데이터 근거(Cluster/Path/AI)에서 출발했는지 명시하라.\n- 클러스터 근거 2개, 경로 근거 2개, AI 교차 인사이트 근거 2개가 되면 이상적이다.\n- 제목/후킹은 반드시 "' + cat.label + '" 소비자의 관심사여야 한다.' + IDEA_FORMAT,
+        10000
+      );
+      setCatData(function(pv) { var n = Object.assign({}, pv); n[catId] = Object.assign({}, n[catId] || {}, { ideas: ideas, ideaLoading: false }); return n; });
+    } catch (e) {
+      setCatData(function(pv) { var n = Object.assign({}, pv); n[catId] = Object.assign({}, n[catId] || {}, { ideas: "⚠️ " + e.message, ideaLoading: false }); return n; });
+    }
   }, [catData]);
 
-  /* ═══ Scan — 3 PERSPECTIVES ═══ */
+  /* ═══ Scan One Category ═══ */
   var scanOne = useCallback(async function(cat) {
     var pre = PRELOADED[cat.id] || {};
     try {
-      /* PERSPECTIVE 1: Cluster-based ideas */
+      /* STEP 1: Cluster data loading (visual) */
       setPhases(function(p) { var n = Object.assign({}, p); n[cat.id] = "cluster"; return n; });
-      await wt(1000); /* 데이터 로딩 시뮬레이션 */
-      var clusterInput = '[카테고리] ' + cat.label + '\n[클러스터 데이터]\n' + (pre.clusters || []).join('\n') + '\n[수요] ' + (pre.di || '') + '\n[CEP] ' + (pre.cep || '');
-      var clusterIdeas = await callAI(
-        SYS_BASE(cat.label) + '\n\n"클러스터 발견" 관점.\n이 클러스터의 소비자 맥락에서, 소비자가 진짜로 관심 있는 주제로 콘텐츠를 만들어라.\n세포랩은 콘텐츠 안에서 자연스럽게 발견되는 것이지, 제목에 나오는 것이 아니다.\n금지: ❌ 자산①(발견 스토리) 사용 금지. ②~⑥만 사용.\n각 아이디어는 서로 다른 클러스터 맥락 + 다른 브랜드 자산을 활용해라.',
-        clusterInput + '\n\n위 클러스터에서 정확히 2개 숏폼 아이디어. 제목은 "' + cat.label + '" 소비자가 클릭할 주제여야 한다.' + IDEA_FORMAT, 6000
-      );
-      setCatData(function(pv) { var n = Object.assign({}, pv); n[cat.id] = Object.assign({}, n[cat.id] || {}, { pre: pre, clusterIdeas: clusterIdeas }); return n; });
-      await wt(1500);
+      setCatData(function(pv) { var n = Object.assign({}, pv); n[cat.id] = { pre: pre }; return n; });
+      await wt(800);
 
-      /* PERSPECTIVE 2: Path-based ideas */
+      /* STEP 2: Path data loading (visual) */
       setPhases(function(p) { var n = Object.assign({}, p); n[cat.id] = "path"; return n; });
-      await wt(1000); /* 데이터 로딩 시뮬레이션 */
-      var pathInput = '[카테고리] ' + cat.label + '\n[경로 상태] ' + (pre.ps === "verified" ? "🟢 확인됨" : "🟡 블루오션") + '\n[경로 데이터]\n' + (pre.paths || []).join('\n') + '\n[수요] ' + (pre.di || '');
-      var pathIdeas = await callAI(
-        SYS_BASE(cat.label) + '\n\n"경로 발견" 관점.\n이 검색 경로의 중간 지점에서, 소비자가 다음 단계로 넘어갈 때 볼 만한 콘텐츠를 만들어라.\n경로의 키워드가 제목이 되어야 한다. 세포랩은 경로의 끝에서 발견되는 것.\n금지: ❌ 자산①(발견 스토리) 사용 금지. ❌ 브랜드 스토리텔링 금지.\n필수: 제목/후킹에 경로의 실제 검색 키워드를 반영하라.',
-        pathInput + '\n\n위 경로 데이터에서 정확히 2개 숏폼 아이디어. 경로의 키워드로 후킹하고, 경로의 빈틈을 채우는 콘텐츠를 만들어라.' + IDEA_FORMAT, 6000
-      );
-      setCatData(function(pv) { var n = Object.assign({}, pv); n[cat.id] = Object.assign({}, n[cat.id] || {}, { pathIdeas: pathIdeas }); return n; });
-      await wt(1500);
+      await wt(800);
 
-      /* PERSPECTIVE 3: AI Creative Insight */
-      setPhases(function(p) { var n = Object.assign({}, p); n[cat.id] = "ai"; return n; });
-      await wt(800); /* 데이터 로딩 시뮬레이션 */
-      var aiInput = '[카테고리] ' + cat.label + '\n[데이터 요약] CEP: ' + (pre.cep || '').substring(0, 150) + '\n경로: ' + (pre.ps === "verified" ? "확인" : "블루오션") + '\n수요: ' + (pre.di || '').substring(0, 100);
-      var aiIdeas = await callAI(
-        SYS_BASE(cat.label) + '\n\n"AI 크리에이티브 인사이트" 관점.\n"' + cat.label + '" 카테고리에서 가장 공유될 만한 콘텐츠를 먼저 생각하고, 그 안에서 세포랩이 자연스럽게 등장할 수 있는 의외의 연결을 찾아라.\n이 관점만 자산①(발견 스토리)을 사용할 수 있다.\n자산: ④⑤⑥을 우선 활용. 2개 중 최소 1개는 ④⑤⑥ 중 하나를 써라.\n금지: ❌ 클러스터/경로 데이터를 직접 참조하지 마라.',
-        aiInput + '\n\n"' + cat.label + '" 소비자가 공유하고 싶을 정도로 재밌는 숏폼 2개. 반전 구조로.' + IDEA_FORMAT, 6000
+      /* STEP 3: Demand verification (visual) */
+      setPhases(function(p) { var n = Object.assign({}, p); n[cat.id] = "demand"; return n; });
+      await wt(800);
+
+      /* STEP 4: Generate 6 ideas (single AI call) */
+      setPhases(function(p) { var n = Object.assign({}, p); n[cat.id] = "idea"; return n; });
+      var dataPrompt = buildDataPrompt(cat, pre);
+
+      var ideas = await callAI(
+        SYS_BASE(cat.label),
+        dataPrompt + '\n\n위 3가지 데이터(클러스터/경로/수요)를 종합해서 정확히 6개 숏폼 콘텐츠 아이디어를 만들어라.\n- 6개 모두 서로 다른 브랜드 자산(①~⑥)을 각각 하나씩 활용해야 한다.\n- 각 아이디어에 어떤 데이터 근거(Cluster/Path/AI)에서 출발했는지 명시하라.\n- 클러스터 근거 2개, 경로 근거 2개, AI 교차 인사이트 근거 2개가 되면 이상적이다.\n- 제목/후킹은 반드시 "' + cat.label + '" 소비자의 관심사여야 한다.' + IDEA_FORMAT,
+        10000
       );
-      setCatData(function(pv) { var n = Object.assign({}, pv); n[cat.id] = Object.assign({}, n[cat.id] || {}, { aiIdeas: aiIdeas }); return n; });
+
+      setCatData(function(pv) { var n = Object.assign({}, pv); n[cat.id] = { pre: pre, ideas: ideas }; return n; });
       setPhases(function(p) { var n = Object.assign({}, p); n[cat.id] = "done"; return n; });
     } catch (err) {
-      setCatData(function(pv) { var n = Object.assign({}, pv); n[cat.id] = { pre: pre, clusterIdeas: "⚠️ " + err.message, pathIdeas: "", aiIdeas: "" }; return n; });
+      setCatData(function(pv) { var n = Object.assign({}, pv); n[cat.id] = { pre: pre, ideas: "⚠️ " + err.message }; return n; });
       setPhases(function(p) { var n = Object.assign({}, p); n[cat.id] = "done"; return n; });
     }
   }, []);
@@ -315,12 +303,12 @@ export default function App() {
     for (var i = 0; i < cs.length; i++) {
       setGMsg(cs[i].icon + " " + cs[i].label + " (" + (i + 1) + "/" + cs.length + ")");
       await scanOne(cs[i]);
-      if (i < cs.length - 1) await wt(1000);
+      if (i < cs.length - 1) await wt(500);
     }
     setStatus("done"); setGMsg("");
   }, [sel, scanOne]);
 
-  var doneCount = Object.keys(catData).length;
+  var doneCount = Object.keys(phases).filter(function(k) { return phases[k] === "done"; }).length;
 
   return <div style={{ minHeight: "100vh", background: C.bg, color: C.text, fontFamily: "'Pretendard Variable', -apple-system, sans-serif" }}>
     <style>{`@import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/variable/pretendardvariable.css');*{box-sizing:border-box;margin:0;padding:0}::-webkit-scrollbar{width:4px}::-webkit-scrollbar-thumb{background:${C.border};border-radius:2px}@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}@keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}@keyframes floatB{0%,100%{transform:translateY(0)}50%{transform:translateY(-5px)}}`}</style>
@@ -339,7 +327,7 @@ export default function App() {
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1.1fr", gap: 20, padding: "20px 0", borderBottom: "1px solid " + C.border }}>
           <div>
             <div style={{ padding: "2px 7px", borderRadius: 3, background: C.goldLight, color: C.goldDeep, fontSize: 8, fontWeight: 700, display: "inline-block", marginBottom: 10 }}>CROSS-CATEGORY CONTENT STRATEGY</div>
-            <h1 style={{ fontSize: 22, fontWeight: 900, lineHeight: 1.4, marginBottom: 8 }}>뷰티에 갇히지 마세요.<br/><span style={{ color: C.gold }}>10개 관심사</span>에서<br/>세포랩을 발견하게 만듭니다.</h1>
+            <h1 style={{ fontSize: 22, fontWeight: 900, lineHeight: 1.4, marginBottom: 8 }}>뷰티에 갇히지 마세요.<br/><span style={{ color: C.gold }}>8개 관심사</span>에서<br/>세포랩을 발견하게 만듭니다.</h1>
             <p style={{ fontSize: 11, color: C.sub, lineHeight: 1.7, marginBottom: 14 }}>세포랩의 브랜드 자산을 소비자 관심사와 연결하고,<br/>리스닝마인드 검색 데이터로 기회를 검증합니다.</p>
             <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 12px", borderRadius: 8, background: C.gold + "06", border: "1px solid " + C.gold + "12" }}>
               <Bottle />
@@ -383,7 +371,7 @@ export default function App() {
               <div style={{ fontSize: 9, fontWeight: on ? 800 : 500, color: on ? C.text : C.sub, marginTop: 2 }}>{c.label}</div>
             </div>; })}
           </div>
-          <button onClick={startScan} disabled={selCount === 0} style={{ width: "100%", padding: 12, borderRadius: 8, border: "none", background: selCount > 0 ? C.gold : C.border, color: selCount > 0 ? "#fff" : C.muted, fontSize: 13, fontWeight: 900, cursor: selCount > 0 ? "pointer" : "default" }}>{selCount > 0 ? selCount + "개 관심사 × 3관점 기회 분석 →" : "관심사를 선택해주세요"}</button>
+          <button onClick={startScan} disabled={selCount === 0} style={{ width: "100%", padding: 12, borderRadius: 8, border: "none", background: selCount > 0 ? C.gold : C.border, color: selCount > 0 ? "#fff" : C.muted, fontSize: 13, fontWeight: 900, cursor: selCount > 0 ? "pointer" : "default" }}>{selCount > 0 ? selCount + "개 관심사 × 데이터 종합 분석 →" : "관심사를 선택해주세요"}</button>
         </div>
       </div>}
 
@@ -399,11 +387,11 @@ export default function App() {
         </div>
         {CATS.filter(function(c) { return sel[c.id]; }).map(function(c) {
           var d = catData[c.id], p = phases[c.id];
-          if (d && d.clusterIdeas) return <ResultCard key={c.id} cat={c} data={d} onRegen={regenPerspective} />;
+          if (d && d.ideas) return <ResultCard key={c.id} cat={c} data={d} onRegen={regenIdeas} />;
           if (p && p !== "done") return <div key={c.id} style={{ padding: 12, borderRadius: 10, border: "1.5px solid " + C.border, background: C.card, marginBottom: 8 }}>
             <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
               <div style={{ width: 32, height: 32, borderRadius: 8, background: c.color + "10", border: "2px solid " + c.color + "20", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 16 }}>{c.icon}</div>
-              <div><div style={{ fontSize: 13, fontWeight: 700 }}>{c.label}</div><div style={{ display: "inline-block", padding: "2px 6px", borderRadius: 4, background: C.gold, color: "#fff", fontSize: 8, fontWeight: 700, animation: "pulse 1.5s ease infinite" }}>{p === "cluster" ? "🎯 클러스터 아이디어 생성 중..." : p === "path" ? "🗺️ 경로 아이디어 생성 중..." : "💡 AI 인사이트 생성 중..."}</div></div>
+              <div><div style={{ fontSize: 13, fontWeight: 700 }}>{c.label}</div><div style={{ display: "inline-block", padding: "2px 6px", borderRadius: 4, background: C.gold, color: "#fff", fontSize: 8, fontWeight: 700, animation: "pulse 1.5s ease infinite" }}>{p === "cluster" ? "🎯 클러스터 데이터 로딩..." : p === "path" ? "🗺️ 경로 데이터 로딩..." : p === "demand" ? "📊 수요 데이터 검증..." : "✨ 아이디어 생성 중..."}</div></div>
             </div>
             <ProcessFlow phase={p} />
           </div>;
@@ -411,7 +399,7 @@ export default function App() {
         })}
       </div>}
 
-      <div style={{ padding: "8px 0 14px", fontSize: 8, color: C.border, display: "flex", justifyContent: "space-between" }}><span>ListeningMind × Claude AI — 3-Perspective Analysis</span><span>pentacle for cepolab</span></div>
+      <div style={{ padding: "8px 0 14px", fontSize: 8, color: C.border, display: "flex", justifyContent: "space-between" }}><span>ListeningMind × Claude AI — Data-Driven Content Strategy</span><span>pentacle for cepolab</span></div>
     </div>
     {toast && <div style={{ position: "fixed", bottom: 16, left: "50%", transform: "translateX(-50%)", padding: "10px 18px", borderRadius: 8, background: C.green + "E8", color: "#fff", fontSize: 12, fontWeight: 600, zIndex: 999, animation: "fadeIn 0.3s ease" }}>{toast}</div>}
   </div>;
