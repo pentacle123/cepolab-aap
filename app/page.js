@@ -62,14 +62,37 @@ async function apiCall(body, retries, timeout) {
 }
 async function callAI(s, u, maxTk) { var tk = maxTk || 4000; var timeout = tk >= 6000 ? 120000 : 55000; var res = await apiCall({ model: "claude-sonnet-4-20250514", max_tokens: tk, system: s, messages: [{ role: "user", content: u }] }, 3, timeout); return res.ok ? res.text : "(오류)"; }
 
-/* ═══ Idea Parser ═══ */
+/* ═══ Idea Parser — flexible ═══ */
 function parseIdeas(text) {
   if (!text || text.length < 30) return [];
-  var chunks = text.split(/(?=\*\*제목\*\*)/).filter(function(c) { return c.indexOf("**제목**") >= 0; });
+  /* Split on **제목** preceded by any combo of newlines, numbers, dashes, bullets, hashes */
+  var chunks = text.split(/(?=(?:^|\n)\s*(?:#{1,4}\s*)?(?:\d+[\.\)]\s*)?(?:[-*]\s*)?\*\*\s*(?:\d+[\.\)]\s*)?제목\s*\*\*)/).filter(function(c) { return /\*\*\s*(?:\d+[\.\)]\s*)?제목\s*\*\*/.test(c); });
   return chunks.map(function(chunk) {
-    var get = function(key) { var m = chunk.match(new RegExp("\\*\\*" + key + "\\*\\*[:\\s]*(.+)", "i")); return m ? m[1].trim() : ""; };
+    /* Flexible field getter: handles **key**: value, **key** value, **N. key**: value */
+    var get = function(key) {
+      var patterns = [
+        new RegExp("\\*\\*\\s*(?:\\d+[\\.)\\s]*)?\\s*" + key + "\\s*\\*\\*[:\\s]*(.+)", "i"),
+        new RegExp("[-*]\\s*\\*\\*" + key + "\\*\\*[:\\s]*(.+)", "i"),
+        new RegExp(key + "\\s*[:\\uff1a]\\s*(.+)", "i")
+      ];
+      for (var i = 0; i < patterns.length; i++) {
+        var m = chunk.match(patterns[i]);
+        if (m) return m[1].replace(/\*+$/g, "").trim();
+      }
+      return "";
+    };
     var cm = chunk.match(/(?:배경무드|배경)[^#]*#?([A-Fa-f0-9]{6})/);
-    return { title: get("제목"), hook: get("썸네일 후킹") || get("후킹"), twist: get("반전 연결") || get("반전"), bgColor: cm ? cm[1] : "8B6914", message: get("핵심 메시지") || get("메시지"), product: get("연결 상품") || get("상품"), asset: get("활용 자산") || get("자산"), basis: get("근거") || get("데이터 근거"), target: get("타겟"), demand: get("수요 근거") || get("수요") };
+    return {
+      title: get("제목"), hook: get("썸네일 후킹") || get("후킹"),
+      twist: get("반전 연결") || get("반전"),
+      bgColor: cm ? cm[1] : "8B6914",
+      message: get("핵심 메시지") || get("메시지"),
+      product: get("연결 상품") || get("상품"),
+      asset: get("활용 자산") || get("자산"),
+      basis: get("근거") || get("데이터 근거"),
+      target: get("타겟"),
+      demand: get("수요 근거") || get("수요")
+    };
   }).filter(function(x) { return x.title; });
 }
 
@@ -184,7 +207,11 @@ function ResultCard({ cat, data, onRegen }) {
           {onRegen && <div style={{ textAlign: "right", marginTop: 8 }}><button onClick={function(e) { e.stopPropagation(); onRegen(cat.id); }} style={{ padding: "5px 12px", borderRadius: 5, border: "1px solid " + C.gold + "30", background: "transparent", color: C.gold, fontSize: 10, fontWeight: 700, cursor: "pointer" }}>🔄 다른 각도로 재생성</button></div>}
         </div>
         : data.ideas ? <div>
-          <div style={{ fontSize: 11, color: C.sub, lineHeight: 1.6, whiteSpace: "pre-line" }}>{data.ideas}</div>
+          <div style={{ padding: "6px 8px", borderRadius: 5, background: C.gold + "08", border: "1px solid " + C.gold + "15", marginBottom: 6 }}>
+            <div style={{ fontSize: 10, color: C.gold, fontWeight: 700, marginBottom: 2 }}>⚠️ 아이디어 파싱 실패 — 재생성을 시도해보세요</div>
+            <div style={{ fontSize: 9, color: C.muted }}>AI 응답 형식이 예상과 달라 카드로 표시하지 못했습니다.</div>
+          </div>
+          <div style={{ fontSize: 11, color: C.sub, lineHeight: 1.6, whiteSpace: "pre-line", maxHeight: 300, overflow: "auto", padding: 8, borderRadius: 6, background: C.alt, border: "1px solid " + C.border }}>{data.ideas}</div>
           {onRegen && <div style={{ textAlign: "right", marginTop: 8 }}><button onClick={function(e) { e.stopPropagation(); onRegen(cat.id); }} style={{ padding: "5px 12px", borderRadius: 5, border: "1px solid " + C.gold + "30", background: "transparent", color: C.gold, fontSize: 10, fontWeight: 700, cursor: "pointer" }}>🔄 다른 각도로 재생성</button></div>}
         </div>
         : null}
